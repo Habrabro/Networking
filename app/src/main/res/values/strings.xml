@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Networking</string>
+
+    <string name="Request_status_open">открыта</string>
+    <string name="Request_status_closed">закрыта</string>
+    <string name="Request_status_in_progress">занята</string>
+</resources>
