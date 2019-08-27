@@ -4,11 +4,21 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
+import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 
 /**
@@ -31,6 +41,8 @@ public class ListFragment extends Fragment
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
+
+    private List<Request> requests = new ArrayList<>();
 
     public ListFragment()
     {
@@ -74,6 +86,17 @@ public class ListFragment extends Fragment
         return inflater.inflate(R.layout.fragment_list, container, false);
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
+    {
+        super.onViewCreated(view, savedInstanceState);
+
+        setInitialData();
+        RecyclerView recyclerView = getActivity().findViewById(R.id.list);
+        DataAdapter dataAdapter = new DataAdapter(getActivity(), requests);
+        recyclerView.setAdapter(dataAdapter);
+    }
+
     // TODO: Rename method, update argument and hook method into UI event
     public void onButtonPressed(Uri uri)
     {
@@ -115,5 +138,40 @@ public class ListFragment extends Fragment
     {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private void setInitialData()
+    {
+        SimpleDateFormat simpleDate = new SimpleDateFormat("dd MMM yyyy, HH:mm:ss");
+
+        requests.add(new Request(
+                "awdwad",
+                new Date(System.currentTimeMillis()),
+                "awd",
+                Status.CLOSED));
+        requests.add(new Request(
+                "12321",
+                new Date(System.currentTimeMillis()),
+                "awd",
+                Status.IN_PROGRESS));
+        requests.add(new Request(
+                "fghhf",
+                new Date(System.currentTimeMillis()),
+                "awd",
+                Status.OPEN));
+        requests.add(new Request(
+                "awdadw",
+                new Date(System.currentTimeMillis()),
+                "awd",
+                Status.CLOSED));
+
+        Collections.sort(requests, new Comparator<Request>()
+        {
+            @Override
+            public int compare(Request o1, Request o2)
+            {
+                return o1.getRequestTitle().compareTo(o2.getRequestTitle());
+            }
+        });
     }
 }

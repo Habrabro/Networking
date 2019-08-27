@@ -1,26 +1,33 @@
 package org.bonestudio.networking;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
+
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener
+public class MainActivity extends AppCompatActivity implements ListFragment.OnFragmentInteractionListener
 {
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button button = findViewById(R.id.btn);
-
-        button.setOnClickListener(this);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (fragmentManager.findFragmentByTag("fragment") == null)
+        {
+            ListFragment listFragment = ListFragment.newInstance("1", "2");
+            fragmentManager.beginTransaction()
+                    .add(R.id.container, listFragment, "fragment")
+                    .commit();
+        }
     }
 
     @Override
-    public void onClick(View view)
+    public void onFragmentInteraction(Uri uri)
     {
 
     }
