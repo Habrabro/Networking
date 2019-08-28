@@ -142,26 +142,24 @@ public class ListFragment extends Fragment
 
     private void setInitialData()
     {
-        SimpleDateFormat simpleDate = new SimpleDateFormat("dd MMM yyyy, HH:mm:ss");
-
         requests.add(new Request(
                 "awdwad",
-                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + 123421),
                 "awd",
                 Status.CLOSED));
         requests.add(new Request(
                 "12321",
-                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + 2132350),
                 "awd",
                 Status.IN_PROGRESS));
         requests.add(new Request(
                 "fghhf",
-                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + 21321103),
                 "awd",
                 Status.OPEN));
         requests.add(new Request(
                 "awdadw",
-                new Date(System.currentTimeMillis()),
+                new Date(System.currentTimeMillis() + 1233296),
                 "awd",
                 Status.CLOSED));
 
@@ -170,7 +168,7 @@ public class ListFragment extends Fragment
             @Override
             public int compare(Request o1, Request o2)
             {
-                return o1.getRequestTitle().compareTo(o2.getRequestTitle());
+                return o1.getActualTime().compareTo(o2.getActualTime());
             }
         });
     }

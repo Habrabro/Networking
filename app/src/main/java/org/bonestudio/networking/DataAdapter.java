@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
@@ -39,8 +40,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
     public void onBindViewHolder(@NonNull DataAdapter.ViewHolder holder, int position)
     {
         Request request = requests.get(position);
+
+        SimpleDateFormat simpleDate = new SimpleDateFormat("dd MMM yyyy, HH:mm:ss");
+        String actualTime = simpleDate.format(request.getActualTime());
+
         holder.titleView.setText(request.getRequestTitle());
-        holder.actualTimeView.setText(request.getActualTime().toString());
+        holder.actualTimeView.setText(actualTime);
         holder.locationView.setText(request.getLocation());
         holder.statusView.setText(request.getStatus().getString());
     }
