@@ -1,7 +1,20 @@
 <resources>
     <string name="app_name">Networking</string>
 
-    <string name="Request_status_open">открыта</string>
-    <string name="Request_status_closed">закрыта</string>
-    <string name="Request_status_in_progress">занята</string>
+    <string name="Request_status_open">Открыта</string>
+    <string name="Request_status_closed">Закрыта</string>
+    <string name="Request_status_in_progress">Занята</string>
+
+    <string-array name="status_parameters">
+        <item>Все</item>
+        <item>Открыта</item>
+        <item>Закрыта</item>
+        <item>Занята</item>
+    </string-array>
+    <string-array name="status_values">
+        <item>all</item>
+        <item>open</item>
+        <item>closed</item>
+        <item>in_progress</item>
+    </string-array>
 </resources>

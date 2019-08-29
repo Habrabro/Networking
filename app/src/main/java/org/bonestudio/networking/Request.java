@@ -1,5 +1,6 @@
 package org.bonestudio.networking;
 
+import android.content.Context;
 import android.content.res.Resources;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -28,13 +29,16 @@ public class Request extends AppCompatActivity
 
 enum Status
 {
-    OPEN("open"),
-    CLOSED("closed"),
-    IN_PROGRESS("in_progress");
-    private String string;
-    Status(String string)
+    OPEN(R.string.Request_status_open),
+    CLOSED(R.string.Request_status_closed),
+    IN_PROGRESS(R.string.Request_status_in_progress);
+    private int stringId;
+    Status(int stringId)
     {
-        this.string = string;
+        this.stringId = stringId;
     }
-    public String getString() { return string; }
+    public String getString(Context context)
+    {
+        return context.getResources().getString(stringId);
+    }
 }

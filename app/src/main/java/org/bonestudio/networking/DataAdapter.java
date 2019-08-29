@@ -10,18 +10,21 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
 {
-    private List<Request> requests;
+    final private List<Request> requests;
     private LayoutInflater layoutInflater;
     private DataAdapterListener listener;
+    private Context context;
 
     DataAdapter(Context context, List<Request> requests)
     {
         this.requests = requests;
         this.layoutInflater = LayoutInflater.from(context);
+        this.context = context;
         if (context instanceof DataAdapterListener)
         {
             listener = (DataAdapterListener)context;
@@ -47,13 +50,26 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
         holder.titleView.setText(request.getRequestTitle());
         holder.actualTimeView.setText(actualTime);
         holder.locationView.setText(request.getLocation());
-        holder.statusView.setText(request.getStatus().getString());
+        holder.statusView.setText(request.getStatus().getString(context));
     }
 
     @Override
     public int getItemCount()
     {
         return requests.size();
+    }
+
+    private List<Request> setFilter(String filter)
+    {
+        List<Request> filteredRequests = new ArrayList<>();
+        for (Request request : requests)
+        {
+            if (request.getStatus().getString(context) == filter)
+            {
+                filteredRequests.add(request);
+            }
+        }
+        return filteredRequests;
     }
 
     public interface DataAdapterListener

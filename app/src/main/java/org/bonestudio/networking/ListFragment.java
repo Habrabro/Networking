@@ -6,18 +6,24 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.collection.ArrayMap;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Spinner;
 
+import java.lang.reflect.Array;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -43,6 +49,7 @@ public class ListFragment extends Fragment
     private OnFragmentInteractionListener mListener;
 
     private List<Request> requests = new ArrayList<>();
+    private String[] spinnerItems = new String[Status.values().length + 1];
 
     public ListFragment()
     {
@@ -91,6 +98,8 @@ public class ListFragment extends Fragment
     {
         super.onViewCreated(view, savedInstanceState);
 
+        setupSpinnerAdapter();
+
         setInitialData();
         RecyclerView recyclerView = getActivity().findViewById(R.id.list);
         DataAdapter dataAdapter = new DataAdapter(getActivity(), requests);
@@ -138,6 +147,37 @@ public class ListFragment extends Fragment
     {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    private void setupSpinnerAdapter()
+    {
+        spinnerItems[0] = "Все";
+        Status[] statuses = Status.values();
+        for (int i = 1; i < spinnerItems.length; i++)
+        {
+            spinnerItems[i] = statuses[i - 1].getString(getContext());
+        }
+
+        Spinner spinner = getActivity().findViewById(R.id.spStatuses);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.support_simple_spinner_dropdown_item, spinnerItems);
+        arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(arrayAdapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
+        {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
+            {
+                String item = adapterView.getItemAtPosition(i);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView)
+            {
+
+            }
+        });
     }
 
     private void setInitialData()
