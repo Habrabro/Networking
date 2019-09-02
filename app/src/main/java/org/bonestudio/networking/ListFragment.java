@@ -6,25 +6,30 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.collection.ArrayMap;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
-import java.lang.reflect.Array;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.http.GET;
 
 
 /**
@@ -35,43 +40,45 @@ import java.util.List;
  * Use the {@link ListFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class ListFragment extends Fragment
+public class ListFragment extends Fragment implements DataAdapter.DataAdapterListener
 {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
     private OnFragmentInteractionListener mListener;
 
+    private DataAdapter dataAdapter;
+
     private List<Request> requests = new ArrayList<>();
-    private String[] spinnerItems = new String[Status.values().length + 1];
+    private List<Request> filteredRequests = new ArrayList<>();
+    private String[] spinnerItems;
+    private String[] statusValues;
+    private HashMap<String, String> spinnerMap = new HashMap<>();
+
+    private final String BASE_URL = "https://glabstore.blob.core.windows.net/test/";
+    private ServerAPI serverAPI;
 
     public ListFragment()
     {
-        // Required empty public constructor
+        setInitialData();
+        Collections.sort(requests, new Comparator<Request>()
+        {
+            @Override
+            public int compare(Request o1, Request o2)
+            {
+                return o1.getActualTime().compareTo(o2.getActualTime());
+            }
+        });
+        filterList(0);
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        serverAPI = retrofit.create(ServerAPI.class);
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ListFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static ListFragment newInstance(String param1, String param2)
+    public static ListFragment newInstance()
     {
         ListFragment fragment = new ListFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
         return fragment;
     }
 
@@ -79,17 +86,12 @@ public class ListFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_list, container, false);
     }
 
@@ -98,32 +100,20 @@ public class ListFragment extends Fragment
     {
         super.onViewCreated(view, savedInstanceState);
 
-        setupSpinnerAdapter();
+        spinnerItems = getActivity().getResources().getStringArray(R.array.spinnerItems);
+        statusValues = getActivity().getResources().getStringArray(R.array.statusValues);
 
-        setInitialData();
+        setupSpinner();
+
         RecyclerView recyclerView = getActivity().findViewById(R.id.list);
-        DataAdapter dataAdapter = new DataAdapter(getActivity(), requests);
+        dataAdapter = new DataAdapter(getActivity(), filteredRequests, spinnerMap);
         recyclerView.setAdapter(dataAdapter);
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri)
-    {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override
     public void onAttach(Context context)
     {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
@@ -133,83 +123,93 @@ public class ListFragment extends Fragment
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
-    public interface OnFragmentInteractionListener
+    @Override
+    public void OnListItemClick(DataAdapter.ViewHolder viewHolder)
     {
-        // TODO: Update argument type and name
-        void onFragmentInteraction(Uri uri);
+        Toast.makeText(getActivity().getApplicationContext(), viewHolder.titleView.getText().toString(), Toast.LENGTH_SHORT).show();
     }
 
-    private void setupSpinnerAdapter()
+    private void setupSpinner()
     {
-        spinnerItems[0] = "Все";
-        Status[] statuses = Status.values();
-        for (int i = 1; i < spinnerItems.length; i++)
+        if (spinnerItems.length != statusValues.length)
         {
-            spinnerItems[i] = statuses[i - 1].getString(getContext());
+            throw new IndexOutOfBoundsException("Arrays of spinner items and status values must be equals in length!");
+        }
+        for (int i = 0; i < spinnerItems.length; i++)
+        {
+            spinnerMap.put(statusValues[i], spinnerItems[i]);
         }
 
-        Spinner spinner = getActivity().findViewById(R.id.spStatuses);
-        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(
-                getActivity(), R.layout.support_simple_spinner_dropdown_item, spinnerItems);
+        final Spinner spinner = getActivity().findViewById(R.id.spFilter);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                getActivity(),
+                R.layout.support_simple_spinner_dropdown_item,
+                spinnerItems);
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
 
+        spinner.setSelection(0,false);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
-                String item = adapterView.getItemAtPosition(i);
+                filterList(i);
+                Log.i("Tag", Integer.toString(filteredRequests.size()));
+                dataAdapter.notifyDataSetChanged();
             }
 
             @Override
-            public void onNothingSelected(AdapterView<?> adapterView)
+            public void onNothingSelected(AdapterView<?> adapterView) { }
+        });
+    }
+
+    private void filterList(int i)
+    {
+        filteredRequests.clear();
+        if (i != 0)
+        {
+            for (Request request : requests)
+            {
+                if (request.getStatus().equals(statusValues[i]))
+                {
+                    filteredRequests.add(request);
+                }
+            }
+        }
+        else
+        {
+            filteredRequests.addAll(requests);
+        }
+    }
+
+    private void setInitialData()
+    {
+        Call<List<Request>> requests = serverAPI.getRequests();
+        requests.enqueue(new Callback<List<Request>>()
+        {
+            @Override
+            public void onResponse(Call<List<Request>> call, Response<List<Request>> response)
+            {
+
+            }
+
+            @Override
+            public void onFailure(Call<List<Request>> call, Throwable t)
             {
 
             }
         });
     }
 
-    private void setInitialData()
+    public interface ServerAPI
     {
-        requests.add(new Request(
-                "awdwad",
-                new Date(System.currentTimeMillis() + 123421),
-                "awd",
-                Status.CLOSED));
-        requests.add(new Request(
-                "12321",
-                new Date(System.currentTimeMillis() + 2132350),
-                "awd",
-                Status.IN_PROGRESS));
-        requests.add(new Request(
-                "fghhf",
-                new Date(System.currentTimeMillis() + 21321103),
-                "awd",
-                Status.OPEN));
-        requests.add(new Request(
-                "awdadw",
-                new Date(System.currentTimeMillis() + 1233296),
-                "awd",
-                Status.CLOSED));
+        @GET("list.json")
+        Call<List<Request>> getRequests();
+    }
 
-        Collections.sort(requests, new Comparator<Request>()
-        {
-            @Override
-            public int compare(Request o1, Request o2)
-            {
-                return o1.getActualTime().compareTo(o2.getActualTime());
-            }
-        });
+    public interface OnFragmentInteractionListener
+    {
+        void onFragmentInteraction(Uri uri);
     }
 }

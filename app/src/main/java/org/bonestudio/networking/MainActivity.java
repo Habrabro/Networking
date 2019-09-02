@@ -5,8 +5,10 @@ import androidx.fragment.app.FragmentManager;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
-public class MainActivity extends AppCompatActivity implements ListFragment.OnFragmentInteractionListener
+public class MainActivity extends AppCompatActivity implements DataAdapter.DataAdapterListener
 {
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -17,7 +19,7 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnFr
         FragmentManager fragmentManager = getSupportFragmentManager();
         if (fragmentManager.findFragmentByTag("fragment") == null)
         {
-            ListFragment listFragment = ListFragment.newInstance("1", "2");
+            ListFragment listFragment = ListFragment.newInstance();
             fragmentManager.beginTransaction()
                     .add(R.id.container, listFragment, "fragment")
                     .commit();
@@ -25,8 +27,8 @@ public class MainActivity extends AppCompatActivity implements ListFragment.OnFr
     }
 
     @Override
-    public void onFragmentInteraction(Uri uri)
+    public void OnListItemClick(DataAdapter.ViewHolder viewHolder)
     {
-
+        Toast.makeText(this,viewHolder.titleView.getText(), Toast.LENGTH_SHORT).show();
     }
 }

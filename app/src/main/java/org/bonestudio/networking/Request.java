@@ -6,39 +6,26 @@ import android.content.res.Resources;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Date;
+import java.util.HashMap;
 
 public class Request extends AppCompatActivity
 {
-    private String title, location;
+    private int id;
+    private String title, location, status;
     private Date actualTime;
-    private Status status;
 
+    public int getId() { return id; }
     public String getRequestTitle() { return title; }
     public String getLocation() { return location; }
     public Date getActualTime() { return actualTime; }
-    public Status getStatus() { return status; }
+    public String getStatus() { return status; }
 
-    public Request(String title, Date actualTime, String location, Status status)
+    public Request(int id, String title, Date actualTime, String location, String status)
     {
+        this.id = id;
         this.title = title;
         this.actualTime = actualTime;
         this.location = location;
         this.status = status;
-    }
-}
-
-enum Status
-{
-    OPEN(R.string.Request_status_open),
-    CLOSED(R.string.Request_status_closed),
-    IN_PROGRESS(R.string.Request_status_in_progress);
-    private int stringId;
-    Status(int stringId)
-    {
-        this.stringId = stringId;
-    }
-    public String getString(Context context)
-    {
-        return context.getResources().getString(stringId);
     }
 }

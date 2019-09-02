@@ -1,31 +1,38 @@
 package org.bonestudio.networking;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
 {
-    final private List<Request> requests;
     private LayoutInflater layoutInflater;
     private DataAdapterListener listener;
-    private Context context;
+    private List<Request> requests;
+    private HashMap<String, String> spinnerMap;
 
-    DataAdapter(Context context, List<Request> requests)
+    DataAdapter(Context context, List<Request> requests, HashMap<String, String> spinnerMap)
     {
         this.requests = requests;
+        this.spinnerMap = spinnerMap;
         this.layoutInflater = LayoutInflater.from(context);
-        this.context = context;
-        if (context instanceof DataAdapterListener)
+        if (context instanceof DataAdapter.DataAdapterListener)
         {
             listener = (DataAdapterListener)context;
         }
@@ -44,32 +51,19 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
     {
         Request request = requests.get(position);
 
-        SimpleDateFormat simpleDate = new SimpleDateFormat("dd MMM yyyy, HH:mm:ss");
+        SimpleDateFormat simpleDate = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         String actualTime = simpleDate.format(request.getActualTime());
 
         holder.titleView.setText(request.getRequestTitle());
         holder.actualTimeView.setText(actualTime);
         holder.locationView.setText(request.getLocation());
-        holder.statusView.setText(request.getStatus().getString(context));
+        holder.statusView.setText(spinnerMap.get(request.getStatus()));
     }
 
     @Override
     public int getItemCount()
     {
         return requests.size();
-    }
-
-    private List<Request> setFilter(String filter)
-    {
-        List<Request> filteredRequests = new ArrayList<>();
-        for (Request request : requests)
-        {
-            if (request.getStatus().getString(context) == filter)
-            {
-                filteredRequests.add(request);
-            }
-        }
-        return filteredRequests;
     }
 
     public interface DataAdapterListener

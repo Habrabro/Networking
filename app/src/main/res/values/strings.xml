@@ -5,14 +5,14 @@
     <string name="Request_status_closed">Закрыта</string>
     <string name="Request_status_in_progress">Занята</string>
 
-    <string-array name="status_parameters">
+    <string-array name="spinnerItems">
         <item>Все</item>
         <item>Открыта</item>
         <item>Закрыта</item>
         <item>Занята</item>
     </string-array>
-    <string-array name="status_values">
-        <item>all</item>
+    <string-array name="statusValues">
+        <item></item>
         <item>open</item>
         <item>closed</item>
         <item>in_progress</item>
