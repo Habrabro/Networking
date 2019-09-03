@@ -54,7 +54,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
         SimpleDateFormat simpleDate = new SimpleDateFormat("dd.MM.yyyy HH:mm");
         String actualTime = simpleDate.format(request.getActualTime());
 
-        holder.titleView.setText(request.getRequestTitle());
+        holder.titleView.setText(request.getTitle());
         holder.actualTimeView.setText(actualTime);
         holder.locationView.setText(request.getLocation());
         holder.statusView.setText(spinnerMap.get(request.getStatus()));

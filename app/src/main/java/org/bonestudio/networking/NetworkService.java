@@ -1,14 +1,11 @@
 package org.bonestudio.networking;
 
-import com.google.gson.Gson;
-
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
-import retrofit2.http.POST;
 
 public class NetworkService
 {
@@ -30,11 +27,11 @@ public class NetworkService
         return mInstance;
     }
 
-    public JSONPlaceHolderApi getJSONApi() {
-        return mRetrofit.create(JSONPlaceHolderApi.class);
+    public ServerAPI getJSONApi() {
+        return mRetrofit.create(ServerAPI.class);
     }
 
-    public interface JSONPlaceHolderApi
+    public interface ServerAPI
     {
         @GET("getRequests")
         Call<List<Request>> getRequests();

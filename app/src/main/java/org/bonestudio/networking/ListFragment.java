@@ -18,7 +18,6 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -28,10 +27,6 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
 
 
 /**
@@ -53,9 +48,6 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
     private String[] spinnerItems;
     private String[] statusValues;
     private HashMap<String, String> spinnerMap = new HashMap<>();
-
-    private static ServerAPI serverAPI;
-    private Retrofit retrofit;
 
     public ListFragment()
     {
@@ -86,23 +78,7 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
     {
         super.onViewCreated(view, savedInstanceState);
 
-        retrofit = new Retrofit.Builder()
-                .baseUrl("https://my-json-server.typicode.com/Habrabro/JSON_server/") //Базовая часть адреса
-                .addConverterFactory(GsonConverterFactory.create()) //Конвертер, необходимый для преобразования JSON'а в объекты
-                .build();
-        serverAPI = retrofit.create(ServerAPI.class);
-
         setInitialData();
-        Collections.sort(requests, new Comparator<Request>()
-        {
-            @Override
-            public int compare(Request o1, Request o2)
-            {
-                if (o1.getActualTime() < o2.getActualTime()) { return -1; }
-                if (o1.getActualTime() > o2.getActualTime()) { return 1; }
-                return 0;
-            }
-        });
         filterList(0);
 
         spinnerItems = getActivity().getResources().getStringArray(R.array.spinnerItems);
@@ -190,18 +166,34 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
 
     private void setInitialData()
     {
-        try {
-            Response<List<Request>> response = serverAPI.getRequests().execute();
-            Log.i("Tag", Boolean.toString(response.isSuccessful()));
-            requests.addAll(response.body());
-        }
-        catch (IOException ex) {}
-    }
+        NetworkService.getInstance()
+                .getJSONApi()
+                .getRequests()
+                .enqueue(new Callback<List<Request>>()
+                {
+                    @Override
+                    public void onResponse(@NonNull Call<List<Request>> call, @NonNull Response<List<Request>> response) {
+                        requests.addAll(response.body());
+                        Collections.sort(requests, new Comparator<Request>()
+                        {
+                            @Override
+                            public int compare(Request o1, Request o2)
+                            {
+                                if (o1.getActualTime() < o2.getActualTime()) { return -1; }
+                                if (o1.getActualTime() > o2.getActualTime()) { return 1; }
+                                return 0;
+                            }
+                        });
+                        filteredRequests.addAll(requests);
 
-    public interface ServerAPI
-    {
-        @GET("getRequests")
-        Call<List<Request>> getRequests();
+                        dataAdapter.notifyDataSetChanged();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Call<List<Request>> call, @NonNull Throwable t) {
+                        Log.i("Tag", "Fail");
+                    }
+                });
     }
 
     public interface OnFragmentInteractionListener
