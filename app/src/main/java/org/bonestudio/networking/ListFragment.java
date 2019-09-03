@@ -18,6 +18,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,6 +31,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
+import retrofit2.http.POST;
 
 
 /**
@@ -52,28 +54,12 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
     private String[] statusValues;
     private HashMap<String, String> spinnerMap = new HashMap<>();
 
-    private final String BASE_URL = "https://glabstore.blob.core.windows.net/test/";
-    private ServerAPI serverAPI;
+    private static ServerAPI serverAPI;
+    private Retrofit retrofit;
 
     public ListFragment()
     {
-        setInitialData();
-        Collections.sort(requests, new Comparator<Request>()
-        {
-            @Override
-            public int compare(Request o1, Request o2)
-            {
-                return o1.getActualTime().compareTo(o2.getActualTime());
-            }
-        });
-        filterList(0);
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
-
-        serverAPI = retrofit.create(ServerAPI.class);
     }
 
     public static ListFragment newInstance()
@@ -99,6 +85,25 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
         super.onViewCreated(view, savedInstanceState);
+
+        retrofit = new Retrofit.Builder()
+                .baseUrl("https://my-json-server.typicode.com/Habrabro/JSON_server/") //Базовая часть адреса
+                .addConverterFactory(GsonConverterFactory.create()) //Конвертер, необходимый для преобразования JSON'а в объекты
+                .build();
+        serverAPI = retrofit.create(ServerAPI.class);
+
+        setInitialData();
+        Collections.sort(requests, new Comparator<Request>()
+        {
+            @Override
+            public int compare(Request o1, Request o2)
+            {
+                if (o1.getActualTime() < o2.getActualTime()) { return -1; }
+                if (o1.getActualTime() > o2.getActualTime()) { return 1; }
+                return 0;
+            }
+        });
+        filterList(0);
 
         spinnerItems = getActivity().getResources().getStringArray(R.array.spinnerItems);
         statusValues = getActivity().getResources().getStringArray(R.array.statusValues);
@@ -185,26 +190,17 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
 
     private void setInitialData()
     {
-        Call<List<Request>> requests = serverAPI.getRequests();
-        requests.enqueue(new Callback<List<Request>>()
-        {
-            @Override
-            public void onResponse(Call<List<Request>> call, Response<List<Request>> response)
-            {
-
-            }
-
-            @Override
-            public void onFailure(Call<List<Request>> call, Throwable t)
-            {
-
-            }
-        });
+        try {
+            Response<List<Request>> response = serverAPI.getRequests().execute();
+            Log.i("Tag", Boolean.toString(response.isSuccessful()));
+            requests.addAll(response.body());
+        }
+        catch (IOException ex) {}
     }
 
     public interface ServerAPI
     {
-        @GET("list.json")
+        @GET("getRequests")
         Call<List<Request>> getRequests();
     }
 
