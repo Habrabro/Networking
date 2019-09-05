@@ -1,12 +1,15 @@
 package org.bonestudio.networking;
 
+import android.app.LauncherActivity;
 import android.content.Context;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -17,6 +20,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -24,24 +28,18 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
+import icepick.Icepick;
+import icepick.State;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link ListFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link ListFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class ListFragment extends Fragment implements DataAdapter.DataAdapterListener
+public class ListFragment extends Fragment implements DataAdapter.DataAdapterListener, App.NetworkServiceListener
 {
     private OnFragmentInteractionListener mListener;
 
     private DataAdapter dataAdapter;
+    private Spinner spinner;
 
     private List<Request> requests = new ArrayList<>();
     private List<Request> filteredRequests = new ArrayList<>();
@@ -59,6 +57,8 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
         ListFragment fragment = new ListFragment();
         return fragment;
     }
+
+    ListFragment getThis() { return this; }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -78,8 +78,20 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
     {
         super.onViewCreated(view, savedInstanceState);
 
-        setInitialData();
-        filterList(0);
+
+            requests.addAll(App.from(getContext()).getDataFromServer(this, false));
+            Collections.sort(requests, new Comparator<Request>()
+            {
+                @Override
+                public int compare(Request o1, Request o2)
+                {
+                    if (o1.getActualTime() < o2.getActualTime()) { return -1; }
+                    if (o1.getActualTime() > o2.getActualTime()) { return 1; }
+                    return 0;
+                }
+            });
+            filterListByStatus(0);
+
 
         spinnerItems = getActivity().getResources().getStringArray(R.array.spinnerItems);
         statusValues = getActivity().getResources().getStringArray(R.array.statusValues);
@@ -110,6 +122,32 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
         Toast.makeText(getActivity().getApplicationContext(), viewHolder.titleView.getText().toString(), Toast.LENGTH_SHORT).show();
     }
 
+    @Override
+    public void onDataReceived(Resp response)
+    {
+        requests.addAll(response.getData());
+        filterListByStatus(spinner.getSelectedItemPosition());
+        dataAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onDisconnected()
+    {
+        final Snackbar snackbar = Snackbar
+                .make(getView(), "Check internet connection!", Snackbar.LENGTH_INDEFINITE);
+        snackbar
+                .setAction("Update", new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        App.from(getContext()).getDataFromServer(getThis(), true);
+                        snackbar.dismiss();
+                    }
+                })
+                .show();
+    }
+
     private void setupSpinner()
     {
         if (spinnerItems.length != statusValues.length)
@@ -121,7 +159,7 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
             spinnerMap.put(statusValues[i], spinnerItems[i]);
         }
 
-        final Spinner spinner = getActivity().findViewById(R.id.spFilter);
+        spinner = getActivity().findViewById(R.id.spFilter);
         ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
                 getActivity(),
                 R.layout.support_simple_spinner_dropdown_item,
@@ -135,7 +173,7 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
-                filterList(i);
+                filterListByStatus(i);
                 Log.i("Tag", Integer.toString(filteredRequests.size()));
                 dataAdapter.notifyDataSetChanged();
             }
@@ -145,7 +183,7 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
         });
     }
 
-    private void filterList(int i)
+    private void filterListByStatus(int i)
     {
         filteredRequests.clear();
         if (i != 0)
@@ -160,40 +198,13 @@ public class ListFragment extends Fragment implements DataAdapter.DataAdapterLis
         }
         else
         {
+            for (Request r : requests)
+            {
+                Log.i("Tag", r.getTitle());
+            }
+            Log.i("Tag", "it works");
             filteredRequests.addAll(requests);
         }
-    }
-
-    private void setInitialData()
-    {
-        NetworkService.getInstance()
-                .getJSONApi()
-                .getRequests()
-                .enqueue(new Callback<List<Request>>()
-                {
-                    @Override
-                    public void onResponse(@NonNull Call<List<Request>> call, @NonNull Response<List<Request>> response) {
-                        requests.addAll(response.body());
-                        Collections.sort(requests, new Comparator<Request>()
-                        {
-                            @Override
-                            public int compare(Request o1, Request o2)
-                            {
-                                if (o1.getActualTime() < o2.getActualTime()) { return -1; }
-                                if (o1.getActualTime() > o2.getActualTime()) { return 1; }
-                                return 0;
-                            }
-                        });
-                        filteredRequests.addAll(requests);
-
-                        dataAdapter.notifyDataSetChanged();
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Call<List<Request>> call, @NonNull Throwable t) {
-                        Log.i("Tag", "Fail");
-                    }
-                });
     }
 
     public interface OnFragmentInteractionListener
