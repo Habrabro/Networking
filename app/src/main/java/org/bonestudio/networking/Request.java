@@ -20,10 +20,18 @@ public class Request
     @SerializedName("location")
     @Expose
     private String location;
+    @SerializedName("description")
+    @Expose
+    private String description;
+    @SerializedName("specialist")
+    @Expose
+    private Specialist specialist;
 
     public long getId() { return id; }
     public String getTitle() { return title; }
     public long getActualTime() { return actualTime; }
     public String getStatus() { return status; }
     public String getLocation() { return location; }
+    public String getDescription() { return description; }
+    public Specialist getSpecialist() { return specialist; }
 }

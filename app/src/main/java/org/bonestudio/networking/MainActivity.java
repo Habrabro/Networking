@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.HashMap;
+
 public class MainActivity extends AppCompatActivity implements DataAdapter.DataAdapterListener
 {
     @Override
@@ -17,18 +19,23 @@ public class MainActivity extends AppCompatActivity implements DataAdapter.DataA
         setContentView(R.layout.activity_main);
 
         FragmentManager fragmentManager = getSupportFragmentManager();
-        if (fragmentManager.findFragmentByTag("fragment") == null)
+        if (fragmentManager.findFragmentByTag("ListFragment") == null)
         {
             ListFragment listFragment = ListFragment.newInstance();
             fragmentManager.beginTransaction()
-                    .add(R.id.container, listFragment, "fragment")
+                    .add(R.id.container, listFragment, "ListFragment")
                     .commit();
         }
     }
 
     @Override
-    public void OnListItemClick(DataAdapter.ViewHolder viewHolder)
+    public void OnListItemClick(DataAdapter.ViewHolder viewHolder, Request request, HashMap<String, String> statusMap)
     {
-        Toast.makeText(this,viewHolder.titleView.getText(), Toast.LENGTH_SHORT).show();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        DetailsFragment detailsFragment = DetailsFragment.newInstance(request.getId(), statusMap);
+        fragmentManager.beginTransaction()
+                .replace(R.id.container, detailsFragment, "DetailsFragment")
+                .addToBackStack(null)
+                .commit();
     }
 }

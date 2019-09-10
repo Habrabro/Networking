@@ -1,36 +1,19 @@
 package org.bonestudio.networking;
 
-import java.util.List;
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;
 
-public class Resp {
-
+public abstract class Resp
+{
     @SerializedName("status")
     @Expose
     private boolean status;
-    @SerializedName("data")
+    @SerializedName("error")
     @Expose
-    private List<Request> data = null;
+    private String error;
 
-    public boolean isStatus()
-    {
+    public boolean isStatus() {
         return status;
     }
-
-    public void setStatus(boolean status)
-    {
-        this.status = status;
-    }
-
-    public List<Request> getData()
-    {
-        return data;
-    }
-
-    public void setData(List<Request> data)
-    {
-        this.data = data;
-    }
-
+    public String getError() { return error; }
 }

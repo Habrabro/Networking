@@ -4,55 +4,45 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
 
-/**
- * A simple {@link Fragment} subclass.
- * Activities that contain this fragment must implement the
- * {@link DetailsFragment.OnFragmentInteractionListener} interface
- * to handle interaction events.
- * Use the {@link DetailsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class DetailsFragment extends Fragment
+public class DetailsFragment extends Fragment implements NetworkServiceListener, NetworkServiceListener.DescriptionResponseReceiver
 {
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+    private final static String ARG_PARAM = "arg_param";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private long id;
+    private HashMap<String, String> statusMap = new HashMap<>();
+
+    private NetworkService networkService;
+    private TextView titleDetailsView, actualTimeDetailsView, locationDetailsView, statusDetailsView, descriptionView,
+            specialistName;
+    private LinearLayout specialistView;
+    private Button startButton;
 
     private OnFragmentInteractionListener mListener;
 
-    public DetailsFragment()
+    public DetailsFragment(long id, HashMap<String, String> statusMap)
     {
-        // Required empty public constructor
+        this.id = id;
+        this.statusMap = statusMap;
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment DetailsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static DetailsFragment newInstance(String param1, String param2)
+    public static DetailsFragment newInstance(long id, HashMap<String, String> statusMap)
     {
-        DetailsFragment fragment = new DetailsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
+        DetailsFragment fragment = new DetailsFragment(id, statusMap);
         return fragment;
     }
 
@@ -60,38 +50,37 @@ public class DetailsFragment extends Fragment
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        // Inflate the layout for this fragment
         return inflater.inflate(R.layout.fragment_details, container, false);
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri)
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState)
     {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
+        super.onViewCreated(view, savedInstanceState);
+
+        networkService = NetworkService.getInstance(this);
+        networkService.getDescription(id);
+
+        titleDetailsView = getActivity().findViewById(R.id.tvTitleDetails);
+        actualTimeDetailsView = getActivity().findViewById(R.id.tvActualTimeDetails);
+        locationDetailsView = getActivity().findViewById(R.id.tvLocationDetails);
+        statusDetailsView = getActivity().findViewById(R.id.tvStatusDetails);
+        descriptionView = getActivity().findViewById(R.id.tvDescription);
+        specialistView = getActivity().findViewById(R.id.llSpecialist);
+        specialistName = getActivity().findViewById(R.id.tvSpecialistName);
+        startButton = getActivity().findViewById(R.id.btnStart);
     }
 
     @Override
     public void onAttach(Context context)
     {
         super.onAttach(context);
-        if (context instanceof OnFragmentInteractionListener) {
-            mListener = (OnFragmentInteractionListener) context;
-        } else {
-            throw new RuntimeException(context.toString()
-                    + " must implement OnFragmentInteractionListener");
-        }
     }
 
     @Override
@@ -101,19 +90,49 @@ public class DetailsFragment extends Fragment
         mListener = null;
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
+    @Override
+    public void onDescriptionResponseReceived(DetailsResponse response)
+    {
+        Request request = response.getData();
+
+        SimpleDateFormat simpleDate = new SimpleDateFormat("dd.MM.yyyy HH:mm");
+        String actualTime = simpleDate.format(request.getActualTime());
+
+        titleDetailsView.setText(request.getTitle());
+        actualTimeDetailsView.setText(actualTime);
+        locationDetailsView.setText(request.getLocation());
+        statusDetailsView.setText(statusMap.get(request.getStatus()));
+        descriptionView.setText(request.getDescription());
+        if (request.getStatus() == getActivity().getResources().getStringArray(R.array.statusValues)[1])
+        {
+            startButton.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            if (request.getSpecialist() != null)
+            {
+                String fName = request.getSpecialist().getFirstName();
+                String lName = request.getSpecialist().getLastName();
+                specialistName.setText(fName + " " + lName);
+                specialistView.setVisibility(View.VISIBLE);
+            }
+        }
+    }
+
+    @Override
+    public void onError(Resp response)
+    {
+
+    }
+
+    @Override
+    public void onDisconnected()
+    {
+
+    }
+
     public interface OnFragmentInteractionListener
     {
-        // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
     }
 }

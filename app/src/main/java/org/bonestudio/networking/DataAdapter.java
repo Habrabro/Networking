@@ -25,12 +25,12 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
     private LayoutInflater layoutInflater;
     private DataAdapterListener listener;
     private List<Request> requests;
-    private HashMap<String, String> spinnerMap;
+    private HashMap<String, String> statusMap;
 
-    DataAdapter(Context context, List<Request> requests, HashMap<String, String> spinnerMap)
+    DataAdapter(Context context, List<Request> requests, HashMap<String, String> statusMap)
     {
         this.requests = requests;
-        this.spinnerMap = spinnerMap;
+        this.statusMap = statusMap;
         this.layoutInflater = LayoutInflater.from(context);
         if (context instanceof DataAdapter.DataAdapterListener)
         {
@@ -57,7 +57,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
         holder.titleView.setText(request.getTitle());
         holder.actualTimeView.setText(actualTime);
         holder.locationView.setText(request.getLocation());
-        holder.statusView.setText(spinnerMap.get(request.getStatus()));
+        holder.statusView.setText(statusMap.get(request.getStatus()));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
 
     public interface DataAdapterListener
     {
-        void OnListItemClick(ViewHolder viewHolder);
+        void OnListItemClick(ViewHolder viewHolder, Request request, HashMap<String, String> statusMap);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
@@ -89,7 +89,7 @@ public class DataAdapter extends RecyclerView.Adapter<DataAdapter.ViewHolder>
         @Override
         public void onClick(View view)
         {
-            listener.OnListItemClick(this);
+            listener.OnListItemClick(this, requests.get(getAdapterPosition()), statusMap);
         }
     }
 }
