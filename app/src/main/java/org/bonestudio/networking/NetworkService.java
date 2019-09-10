@@ -59,8 +59,9 @@ public class NetworkService
                             @Override
                             public void onResponse(@NonNull Call<ListResponse> call, @NonNull Response<ListResponse> response)
                             {
-                                ListResponse listResponse = (ListResponse)response.body();
-                                requests.addAll(listResponse.getData());
+                                ListResponse listResponse = response.body();
+                                requests.clear();
+                                requests.addAll((List<Request>)listResponse.getData());
                                 if (listener != null)
                                 {
                                     if (listResponse.isStatus())
@@ -110,8 +111,8 @@ public class NetworkService
                                 DetailsResponse detailsResponse = (DetailsResponse)response.body();
                                 if (detailsResponse.isStatus())
                                 {
-                                    ((NetworkServiceListener.DescriptionResponseReceiver)listener)
-                                            .onDescriptionResponseReceived(detailsResponse);
+                                    ((NetworkServiceListener.DetailsResponseReceiver)listener)
+                                            .onDetailsResponseReceived(detailsResponse);
                                 }
                                 else
                                 {

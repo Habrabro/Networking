@@ -9,11 +9,7 @@ public class DetailsResponse extends Resp {
     @Expose
     private Request data;
 
-
-
     public Request getData() {
         return data;
     }
-
-
 }

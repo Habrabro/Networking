@@ -16,12 +16,15 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 
-public class DetailsFragment extends Fragment implements NetworkServiceListener, NetworkServiceListener.DescriptionResponseReceiver
+public class DetailsFragment extends Fragment implements NetworkServiceListener, NetworkServiceListener.DetailsResponseReceiver
 {
-    private final static String ARG_PARAM = "arg_param";
+    private final static String ARG_PARAM_1 = "arg_param_1";
+    private final static String ARG_PARAM_2 = "arg_param_2";
 
     private long id;
     private HashMap<String, String> statusMap = new HashMap<>();
@@ -34,15 +37,18 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
 
     private OnFragmentInteractionListener mListener;
 
-    public DetailsFragment(long id, HashMap<String, String> statusMap)
+    public DetailsFragment()
     {
-        this.id = id;
-        this.statusMap = statusMap;
+
     }
 
     public static DetailsFragment newInstance(long id, HashMap<String, String> statusMap)
     {
-        DetailsFragment fragment = new DetailsFragment(id, statusMap);
+        DetailsFragment fragment = new DetailsFragment();
+        Bundle bundle = new Bundle();
+        bundle.putLong(ARG_PARAM_1, id);
+        bundle.putSerializable(ARG_PARAM_2, statusMap);
+        fragment.setArguments(bundle);
         return fragment;
     }
 
@@ -50,6 +56,11 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+        if (getArguments() != null)
+        {
+            id = getArguments().getLong(ARG_PARAM_1);
+            statusMap = (HashMap<String, String>)getArguments().getSerializable(ARG_PARAM_2);
+        }
     }
 
     @Override
@@ -75,6 +86,16 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
         specialistView = getActivity().findViewById(R.id.llSpecialist);
         specialistName = getActivity().findViewById(R.id.tvSpecialistName);
         startButton = getActivity().findViewById(R.id.btnStart);
+
+        startButton.setOnClickListener(new View.OnClickListener()
+        {
+            @Override
+            public void onClick(View view)
+            {
+                SorryDialog sorryDialog = new SorryDialog();
+                sorryDialog.show(getActivity().getSupportFragmentManager(), "sorryDialog");
+            }
+        });
     }
 
     @Override
@@ -91,7 +112,7 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     }
 
     @Override
-    public void onDescriptionResponseReceived(DetailsResponse response)
+    public void onDetailsResponseReceived(DetailsResponse response)
     {
         Request request = response.getData();
 
@@ -103,7 +124,9 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
         locationDetailsView.setText(request.getLocation());
         statusDetailsView.setText(statusMap.get(request.getStatus()));
         descriptionView.setText(request.getDescription());
-        if (request.getStatus() == getActivity().getResources().getStringArray(R.array.statusValues)[1])
+        Log.i("status", request.getStatus());
+        Log.i("status", getActivity().getResources().getStringArray(R.array.statusValues)[1]);
+        if (request.getStatus().equals(getActivity().getResources().getStringArray(R.array.statusValues)[1]))
         {
             startButton.setVisibility(View.VISIBLE);
         }
@@ -122,13 +145,37 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     @Override
     public void onError(Resp response)
     {
-
+        final Snackbar snackbar = Snackbar
+                .make(getView(), response.getError(), Snackbar.LENGTH_INDEFINITE);
+        snackbar
+                .setAction("Ok", new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        getActivity().getSupportFragmentManager().popBackStack();
+                        snackbar.dismiss();
+                    }
+                })
+                .show();
     }
 
     @Override
     public void onDisconnected()
     {
-
+        final Snackbar snackbar = Snackbar
+                .make(getView(), "Check internet connection!", Snackbar.LENGTH_INDEFINITE);
+        snackbar
+                .setAction("Update", new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View view)
+                    {
+                        networkService.getDescription(id);
+                        snackbar.dismiss();
+                    }
+                })
+                .show();
     }
 
     public interface OnFragmentInteractionListener

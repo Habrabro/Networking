@@ -6,9 +6,9 @@ public interface NetworkServiceListener
     {
         void onListResponseReceived(ListResponse response);
     }
-    interface DescriptionResponseReceiver
+    interface DetailsResponseReceiver
     {
-        void onDescriptionResponseReceived(DetailsResponse response);
+        void onDetailsResponseReceived(DetailsResponse response);
     }
     void onError(Resp response);
     void onDisconnected();

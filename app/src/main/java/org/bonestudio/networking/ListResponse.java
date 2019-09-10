@@ -10,16 +10,8 @@ public class ListResponse extends Resp {
     @Expose
     private List<Request> data = null;
 
-
-
     public List<Request> getData()
     {
         return data;
     }
-
-    public void setData(List<Request> data)
-    {
-        this.data = data;
-    }
-
 }
