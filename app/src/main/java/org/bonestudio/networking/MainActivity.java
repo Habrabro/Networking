@@ -29,10 +29,13 @@ public class MainActivity extends AppCompatActivity implements DataAdapter.DataA
     public void OnListItemClick(DataAdapter.ViewHolder viewHolder, Request request, HashMap<String, String> statusMap)
     {
         FragmentManager fragmentManager = getSupportFragmentManager();
-        DetailsFragment detailsFragment = DetailsFragment.newInstance(request.getId(), statusMap);
-        fragmentManager.beginTransaction()
-                .replace(R.id.container, detailsFragment, "DetailsFragment")
-                .addToBackStack(null)
-                .commit();
+        if (fragmentManager.findFragmentByTag("DetailsFragment") == null)
+        {
+            DetailsFragment detailsFragment = DetailsFragment.newInstance(request.getId(), statusMap);
+            fragmentManager.beginTransaction()
+                    .replace(R.id.container, detailsFragment, "DetailsFragment")
+                    .addToBackStack(null)
+                    .commit();
+        }
     }
 }
