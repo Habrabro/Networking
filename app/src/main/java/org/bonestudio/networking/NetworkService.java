@@ -5,7 +5,6 @@ import android.net.ConnectivityManager;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +26,7 @@ public class NetworkService
     private Retrofit retrofit;
     private ServerAPI serverAPI;
 
-    private NetworkService(NetworkServiceListener listener)
+    private NetworkService()
     {
         retrofit = new Retrofit.Builder()
                 .baseUrl(baseURL)
@@ -39,7 +38,7 @@ public class NetworkService
     {
         if (instance == null)
         {
-            instance = new NetworkService(listener);
+            instance = new NetworkService();
         }
         listener = _listener;
         return instance;
@@ -51,6 +50,7 @@ public class NetworkService
         {
             if (isNetworkConnected())
             {
+                requests.clear();
                 serverAPI = retrofit.create(ServerAPI.class);
                 serverAPI
                         .getRequests()
@@ -61,8 +61,8 @@ public class NetworkService
                             {
                                 ListResponse listResponse = response.body();
                                 requests.clear();
-                                requests.addAll((List<Request>)listResponse.getData());
-                                if (listener != null)
+                                requests.addAll(listResponse.getData());
+                                if (listener instanceof NetworkServiceListener.ListResponseReceiver)
                                 {
                                     if (listResponse.isStatus())
                                     {
@@ -106,9 +106,9 @@ public class NetworkService
                         @Override
                         public void onResponse(@NonNull Call<DetailsResponse> call, @NonNull Response<DetailsResponse> response)
                         {
-                            if (listener != null)
+                            if (listener instanceof NetworkServiceListener.DetailsResponseReceiver)
                             {
-                                DetailsResponse detailsResponse = (DetailsResponse)response.body();
+                                DetailsResponse detailsResponse = response.body();
                                 if (detailsResponse.isStatus())
                                 {
                                     ((NetworkServiceListener.DetailsResponseReceiver)listener)

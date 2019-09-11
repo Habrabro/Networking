@@ -1,6 +1,13 @@
 <resources>
     <string name="app_name">Networking</string>
 
+    <string name="snackbarCheckNetworkConnection">Проверьте ваше подключение к сети</string>
+    <string name="snackbarButtonUpdate">Обновить</string>
+    <string name="textDialog">Извините, данный функционал еще в разработке</string>
+    <string name="buttonDialog">Понятно</string>
+    <string name="buttonStart">Приступить</string>
+    <string name="textSpecialistTitle">Исполнитель:</string>
+
     <string-array name="spinnerItems">
         <item>Все</item>
         <item>Открыта</item>

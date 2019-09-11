@@ -1,25 +1,21 @@
 package org.bonestudio.networking;
 
-import android.app.LauncherActivity;
 import android.content.Context;
-import android.net.ConnectivityManager;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
-import android.widget.Toast;
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
@@ -28,13 +24,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
-import icepick.Icepick;
-import icepick.State;
-import retrofit2.Call;
-import retrofit2.Callback;
-
 public class ListFragment extends Fragment implements NetworkServiceListener, NetworkServiceListener.ListResponseReceiver
 {
+    private final static String PREF_SPINNER_SELECTION = "spinnerSelection";
+
     private OnFragmentInteractionListener mListener;
 
     private DataAdapter dataAdapter;
@@ -46,6 +39,8 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
     private String[] spinnerItems;
     private String[] statusValues;
     private HashMap<String, String> statusMap = new HashMap<>();
+
+    private SharedPreferences sharedPreferences;
 
     public ListFragment() { }
 
@@ -59,10 +54,12 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
         return inflater.inflate(R.layout.fragment_list, container, false);
@@ -90,7 +87,7 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
     }
 
     @Override
-    public void onAttach(Context context)
+    public void onAttach(@NonNull Context context)
     {
         super.onAttach(context);
     }
@@ -133,9 +130,9 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
     public void onDisconnected()
     {
         final Snackbar snackbar = Snackbar
-            .make(getView(), "Check internet connection!", Snackbar.LENGTH_INDEFINITE);
+            .make(getView(), getResources().getString(R.string.snackbarCheckNetworkConnection), Snackbar.LENGTH_INDEFINITE);
         snackbar
-            .setAction("Update", new View.OnClickListener()
+            .setAction(getResources().getString(R.string.snackbarButtonUpdate), new View.OnClickListener()
             {
                 @Override
                 public void onClick(View view)
@@ -166,12 +163,19 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
         arrayAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(arrayAdapter);
 
-        spinner.setSelection(0,false);
+        if (sharedPreferences.contains(PREF_SPINNER_SELECTION))
+        {
+            spinner.setSelection(sharedPreferences.getInt(PREF_SPINNER_SELECTION, 0));
+        }
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener()
         {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l)
             {
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putInt(PREF_SPINNER_SELECTION, i);
+                editor.apply();
+
                 filterListByStatus(i);
                 dataAdapter.notifyDataSetChanged();
             }
@@ -188,9 +192,7 @@ public class ListFragment extends Fragment implements NetworkServiceListener, Ne
             @Override
             public int compare(Request o1, Request o2)
             {
-                if (o1.getActualTime() < o2.getActualTime()) { return -1; }
-                if (o1.getActualTime() > o2.getActualTime()) { return 1; }
-                return 0;
+                return Long.compare(o1.getActualTime(), o2.getActualTime());
             }
         });
     }

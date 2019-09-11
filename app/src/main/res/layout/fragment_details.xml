@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
                 android:layout_marginTop="15dp"
-                android:text="Исполнитель:"/>
+                android:text="@string/textSpecialistTitle"/>
 
             <TextView android:id="@+id/tvSpecialistName"
                 android:layout_width="match_parent"
@@ -70,6 +70,6 @@
         android:layout_alignParentBottom="true"
         android:layout_marginTop="15dp"
         android:layout_gravity="bottom"
-        android:text="Приступить"
+        android:text="@string/buttonStart"
         android:visibility="gone"/>
 </RelativeLayout>

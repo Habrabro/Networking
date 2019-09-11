@@ -8,7 +8,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,10 +63,11 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState)
     {
-        return inflater.inflate(R.layout.fragment_details, container, false);
+        View view = inflater.inflate(R.layout.fragment_details, container, false);
+        return view;
     }
 
     @Override
@@ -78,14 +78,14 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
         networkService = NetworkService.getInstance(this);
         networkService.getDescription(id);
 
-        titleDetailsView = getActivity().findViewById(R.id.tvTitleDetails);
-        actualTimeDetailsView = getActivity().findViewById(R.id.tvActualTimeDetails);
-        locationDetailsView = getActivity().findViewById(R.id.tvLocationDetails);
-        statusDetailsView = getActivity().findViewById(R.id.tvStatusDetails);
-        descriptionView = getActivity().findViewById(R.id.tvDescription);
-        specialistView = getActivity().findViewById(R.id.llSpecialist);
-        specialistName = getActivity().findViewById(R.id.tvSpecialistName);
-        startButton = getActivity().findViewById(R.id.btnStart);
+        titleDetailsView = view.findViewById(R.id.tvTitleDetails);
+        actualTimeDetailsView = view.findViewById(R.id.tvActualTimeDetails);
+        locationDetailsView = view.findViewById(R.id.tvLocationDetails);
+        statusDetailsView = view.findViewById(R.id.tvStatusDetails);
+        descriptionView = view.findViewById(R.id.tvDescription);
+        specialistView = view.findViewById(R.id.llSpecialist);
+        specialistName = view.findViewById(R.id.tvSpecialistName);
+        startButton = view.findViewById(R.id.btnStart);
 
         startButton.setOnClickListener(new View.OnClickListener()
         {
@@ -99,7 +99,7 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     }
 
     @Override
-    public void onAttach(Context context)
+    public void onAttach(@NonNull Context context)
     {
         super.onAttach(context);
     }
@@ -124,8 +124,6 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
         locationDetailsView.setText(request.getLocation());
         statusDetailsView.setText(statusMap.get(request.getStatus()));
         descriptionView.setText(request.getDescription());
-        Log.i("status", request.getStatus());
-        Log.i("status", getActivity().getResources().getStringArray(R.array.statusValues)[1]);
         if (request.getStatus().equals(getActivity().getResources().getStringArray(R.array.statusValues)[1]))
         {
             startButton.setVisibility(View.VISIBLE);
@@ -164,9 +162,9 @@ public class DetailsFragment extends Fragment implements NetworkServiceListener,
     public void onDisconnected()
     {
         final Snackbar snackbar = Snackbar
-                .make(getView(), "Check internet connection!", Snackbar.LENGTH_INDEFINITE);
+                .make(getView(), getResources().getString(R.string.snackbarCheckNetworkConnection), Snackbar.LENGTH_INDEFINITE);
         snackbar
-                .setAction("Update", new View.OnClickListener()
+                .setAction(getResources().getString(R.string.snackbarButtonUpdate), new View.OnClickListener()
                 {
                     @Override
                     public void onClick(View view)
